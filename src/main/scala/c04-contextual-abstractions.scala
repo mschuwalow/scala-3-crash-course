@@ -57,20 +57,30 @@ object ImplicitParams:
 /**
  * Exercises: extension methods
  */
+
 @main def extensionMethodsExercises =
   // Exercise 1: Extend java.time.Instant with a method
   // calculating the duration between two instants: def -(until: Instant): java.time.Duration
   // Hint: You can use java.time.Duration.between(one, two).
   import java.time.* // In Scala 3 `*` is the wildcard import and not `_` anymore.
 
-// The following should compile:
-// println(Instant.now() - Instant.now())
+  extension (value: Instant)
+    def -(other: Instant): Instant =
+      value.minusNanos(other.getNano)
 
-// Exercise 2: Implement def +(thatTuple: Tuple2[A, B]) function on the Tuple2
-// Hint: Use the Numeric type class (https://www.scala-lang.org/api/current/scala/math/Numeric.html).
+  // The following should compile:
+  println(Instant.now() - Instant.now())
 
-// The following should compile:
-// println((2, 2.1) + (3, 4.0)) // result: (5, 6.1)
+  // Exercise 2: Implement def +(thatTuple: Tuple2[A, B]) function on the Tuple2
+  // Hint: Use the Numeric type class (https://www.scala-lang.org/api/current/scala/math/Numeric.html).
+
+  extension [A, B](value: (A, B))
+    def +(other: (A, B))(using Numeric[A], Numeric[B]): (A, B) =
+      import scala.math.Numeric.Implicits.*
+      (value._1 + other._1, value._2 + other._2)
+
+  // The following should compile:
+  println((2, 2.1) + (3, 4.0)) // result: (5, 6.1)
 
 /**
  * Chapter 3.3: Type classes
@@ -112,10 +122,24 @@ object TypeclassesExercises:
   // Exercise 1. For the following Monad type class declaration implement:
   // - instance for Option
   // - syntax
+
   trait Monad[F[_]]:
-    def bind[A, B](fa: F[A])(f: A => F[B]): F[B]
+    self =>
+
     def unit[A](x: A): F[A]
-  ???
+    extension [A](fa: F[A])
+      def bind[B](f: A => F[B]): F[B] =
+        self.bind(fa)(f)
+
+      def void: F[Unit] =
+        self.bind(fa)(_ => self.unit(()))
+
+  given Monad[Option] with
+    def bind[A, B](fa: Option[A])(f: A => Option[B]): Option[B] =
+      fa.flatMap(f)
+
+    def unit[A](x: A): Option[A] =
+      Some(x)
 
 /**
  * Chapter 3.4: Implicit conversions

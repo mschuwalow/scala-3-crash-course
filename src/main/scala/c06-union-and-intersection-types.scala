@@ -50,6 +50,14 @@ object UnionTypes:
 // Exercise 1: Model a PaymentAuthorizationError ADT from Chapter 3 (enums) using a union type.
 // What pros/cons do you see when you use a union type vs enums in modeling ADTs?
 //
+object errors:
+  import enumsExercises._
+  final case class IllegalPaymentStatus(existingPaymentId: PaymentId, existingPaymentStatus: PaymentStatus)
+  final case class IllegalRequestData(reason: String)
+  final case class CustomerUnknown(unknownCustomerId: CustomerId)
+  final case class InvalidToken(invalidToken: Token)
+
+  type Error = IllegalPaymentStatus | IllegalRequestData | CustomerUnknown | InvalidToken
 
 object IntersectionTypes:
   /**
